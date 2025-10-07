@@ -8,18 +8,21 @@ bot.start((ctx) => ctx.reply("👋 Hello! I’m your bot.\n\nCommands:\n/weather
 
 bot.command("weather", async (ctx) => {
   const city = ctx.message.text.split(" ").slice(1).join(" ");
-  if (!city) return ctx.reply("🌤️ Please provide a city name. Example: /weather Manila");
+  if (!city) return ctx.reply("🌤️ Please provide a city. Example: /weather Manila");
 
   try {
     const res = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.WEATHER_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${process.env.WEATHER_KEY}&units=metric`
     );
     const w = res.data;
-    ctx.reply(`🌤️ Weather in ${w.name}:\n${w.weather[0].description}\n🌡️ ${w.main.temp}°C`);
-  } catch {
-    ctx.reply("⚠️ City not found.");
+    ctx.reply(
+      `🌤️ Weather in ${w.name}, ${w.sys.country}:\n${w.weather[0].description}\n🌡️ ${w.main.temp}°C`
+    );
+  } catch (err) {
+    ctx.reply("⚠️ City not found. Try shorter names like `/weather Batangas` or `/weather San Jose PH`.");
   }
 });
+
 
 bot.command("verse", async (ctx) => {
   const res = await axios.get("https://bible-api.com/john%203:16");
@@ -48,3 +51,4 @@ bot.command("chat", async (ctx) => {
 
 bot.launch();
 console.log("✅ Bot is running...");
+

@@ -25,10 +25,15 @@ bot.command("weather", async (ctx) => {
 
 
 bot.command("verse", async (ctx) => {
-  const res = await axios.get("https://bible-api.com/john%203:16");
-  const v = res.data;
-  ctx.reply(`📖 ${v.reference}\n${v.text}`);
+  try {
+    const res = await axios.get("https://labs.bible.org/api/?passage=random&type=json");
+    const v = res.data[0];
+    ctx.reply(`📖 ${v.bookname} ${v.chapter}:${v.verse}\n${v.text}`);
+  } catch (err) {
+    ctx.reply("⚠️ Could not fetch a Bible verse right now. Try again later.");
+  }
 });
+
 
 bot.command("define", async (ctx) => {
   const word = ctx.message.text.split(" ").slice(1).join(" ");
@@ -46,9 +51,23 @@ bot.command("define", async (ctx) => {
 bot.command("chat", async (ctx) => {
   const message = ctx.message.text.split(" ").slice(1).join(" ");
   if (!message) return ctx.reply("💬 Example: /chat hello bot");
-  ctx.reply("🤖 (AI simulation) You said: " + message);
+
+  try {
+    const res = await axios.post(
+      "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
+      { inputs: message },
+      { headers: { Authorization: "Bearer hf_ezHhXy..." } } // optional if you have free HF token
+    );
+
+    const reply = res.data[0]?.generated_text || "🤖 Sorry, I couldn’t think of a response.";
+    ctx.reply(reply);
+  } catch (err) {
+    console.error(err);
+    ctx.reply("⚠️ AI chat is temporarily unavailable.");
+  }
 });
 
 bot.launch();
 console.log("✅ Bot is running...");
+
 
